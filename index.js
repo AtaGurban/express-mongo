@@ -1,24 +1,48 @@
-const express = require('express');
-const mongoose = require('mongoose');
+require("dotenv").config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+const fileUpload = require("express-fileupload");
+const router = require("./routes/index");
+const ErrorHandlingMiddleware = require("./middleware/ErrorHandlingMiddleware");
 const app = express();
+const path = require("path");
+const { User } = require("./models/userModel");
 const port = process.env.PORT || 8080;
+app.use(cors());
+app.use(express.json());
+app.use("/api/static", express.static(path.resolve(__dirname, "files")));
+app.use(
+  fileUpload({
+    defCharset: "utf8",
+    defParamCharset: "utf8",
+  })
+);
 
-// Подключение к MongoDB
-mongoose.connect('mongodb://localhost:27017/your-database-name', { useNewUrlParser: true, useUnifiedTopology: true });
+app.use("/api", router);
+app.use(ErrorHandlingMiddleware);
 
-// Проверка соединения
-const db = mongoose.connection;
-db.on('error', console.error.bind(console, 'MongoDB connection error:'));
-db.once('open', function() {
-  console.log('Connected to MongoDB');
-});
+const start = async () => {
+  try {
+    // Подключение к MongoDB
+    await mongoose.connect(`mongodb://localhost:27017/${process.env.DB_NAME}`, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
 
-// Настройка маршрутов
-app.get('/', (req, res) => {
-  res.send('Привет, мир!');
-});
+    // Проверка соединения
+    const db = mongoose.connection;
+    db.once("error", console.error.bind(console, "MongoDB connection error:"));
+    db.on("open", function () {
+      console.log("Connected to MongoDB");
+    });
+    // Запуск сервера
+    app.listen(port, () => {
+      console.log(`Сервер запущен на порту ${port}`);
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-// Запуск сервера
-app.listen(port, () => {
-  console.log(`Сервер запущен на порту ${port}`);
-});
+start();
