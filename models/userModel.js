@@ -1,15 +1,20 @@
 const mongoose = require("mongoose");
+const timestamp = require('mongoose-timestamp');
 
-const userSchema = new mongoose.Schema({
+const UserSchema = new mongoose.Schema({
   name: String,
   email: String,
   phone: String,
   avatar: String,
   password: String,
   birthdate: Date,
-  posts: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ToDo' }]
+  toDos: [{ type: mongoose.Schema.Types.ObjectId, ref: 'ToDo' }]
 });
 
-const User = mongoose.model('User', userSchema);
+UserSchema.plugin(timestamp);
+
+const User = mongoose.model('User', UserSchema);
+
+
 
 module.exports = {User};

@@ -8,6 +8,17 @@ const generateJwt = (obj) => {
 class UserController {
   async check(req, res, next) {
     try {
+      const {user} = req
+      const token = generateJwt({
+        id: user.id,
+        email: user.email,
+        birthdate: user.birthdate,
+        avatar: user.avatar,
+        name: user.name,
+        phone: user.phone,
+        password: user.password,
+      });
+      return res.json({ token });
     } catch (error) {
       return next(ApiError.internal(error));
     }
@@ -27,20 +38,18 @@ class UserController {
       const hashPassword = await bcrypt.hash(password, 5);
       const user = new User({
         email,
-        first_name: name,
+        name,
         birthdate,
         phone,
         password: hashPassword,
       });
       await user.save();
-      console.log(user);
-      console.log(user.id);
       const token = generateJwt({
         id: user.id,
         email: user.email,
         birthdate: user.birthdate,
         avatar: user.avatar,
-        name: user.first_name,
+        name: user.name,
         phone: user.phone,
         password: user.password,
       });
