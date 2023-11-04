@@ -8,7 +8,7 @@ const generateJwt = (obj) => {
 class UserController {
   async check(req, res, next) {
     try {
-      const {user} = req
+      const { user } = req;
       const token = generateJwt({
         id: user.id,
         email: user.email,
@@ -56,11 +56,35 @@ class UserController {
       return res.json({ token });
     } catch (error) {
       console.log(error);
-      return next(ApiError.internal(error.message))
+      return next(ApiError.internal(error.message));
     }
   }
   async login(req, res, next) {
     try {
+      const { login, password } = req.body;
+      if (!login || !password) {
+        return next(ApiError.badRequest("Maglumatlaryňyz nädogry"));
+      }
+      const user = await User.findOne({
+        $or: [{ email: login }, { phone: login }],
+      });
+      if (!user) {
+        return next(ApiError.badRequest("Munuň ýaly ulanyjy ýok"));
+      }
+      let comparePassword = bcrypt.compareSync(password, user.password);
+      if (!comparePassword) {
+        return next(ApiError.badRequest("Açarsöz ýalňyş"));
+      }
+      const token = generateJwt({
+        id: user.id,
+        email: user.email,
+        birthdate: user.birthdate,
+        avatar: user.avatar,
+        name: user.name,
+        phone: user.phone,
+        password: user.password,
+      });
+      return res.json({ token });
     } catch (error) {
       return next(ApiError.internal(error));
     }
