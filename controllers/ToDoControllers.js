@@ -111,7 +111,6 @@ class ToDoController {
         filter = { $or: [{ title: regex }, { content: regex }] };
       }
       const todos = await ToDo.find(filter)
-        .populate("user") // Популируем поле user
         .populate("images"); // Популируем поле images;
       return res.json(todos);
     } catch (error) {
